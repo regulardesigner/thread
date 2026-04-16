@@ -120,7 +120,7 @@ export async function registerApp(instanceDomain, { clientName, redirectUri, sco
       client_name: clientName,
       redirect_uris: redirectUri,
       scopes,
-      website: window.location.origin,
+      website: "https://regulardesigner.github.io/thread/",
     },
   });
 }
