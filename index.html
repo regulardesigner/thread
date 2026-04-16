@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calm Thread Publisher</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="appShell" class="app-shell">
+      <header class="app-header card">
+        <div>
+          <h1>Calm Thread Publisher</h1>
+          <p>Write once, split toots automatically, publish with recovery controls.</p>
+        </div>
+      </header>
+
+      <section class="card auth-card" aria-label="Mastodon sign in">
+        <div id="signedOutAuthPanel">
+          <form id="signInForm" class="auth-form">
+            <label for="instanceInput">Mastodon instance</label>
+            <div class="auth-controls">
+              <input
+                id="instanceInput"
+                name="instance"
+                type="text"
+                placeholder="mastodon.social"
+                autocomplete="url"
+                required
+              />
+              <button id="signInButton" type="submit">Sign in</button>
+            </div>
+          </form>
+          <p id="authStatus" class="muted">Not signed in.</p>
+        </div>
+
+        <div id="signedInAuthPanel" class="auth-session hidden">
+          <article class="account-card" aria-label="Connected account">
+            <img
+              id="accountAvatar"
+              class="account-avatar"
+              src=""
+              alt="Connected account avatar"
+            />
+            <div class="account-summary">
+              <p id="accountDisplayName" class="account-display-name">Account</p>
+              <p id="accountHandle" class="muted">@account</p>
+              <p id="accountInstance" class="muted">Connected to mastodon.social</p>
+              <div class="account-stats muted">
+                <span><strong id="accountStatuses">0</strong> posts</span>
+                <span><strong id="accountFollowers">0</strong> followers</span>
+                <span><strong id="accountFollowing">0</strong> following</span>
+              </div>
+            </div>
+          </article>
+          <button id="signOutButton" type="button" class="secondary">Sign out</button>
+        </div>
+      </section>
+
+      <section id="messageBanner" class="banner hidden" aria-live="polite"></section>
+
+      <main class="layout">
+        <section class="card compose-panel" aria-label="Composer">
+          <div class="panel-head inline">
+            <h2>Compose</h2>
+            <button id="focusModeButton" type="button" class="secondary">Focus mode</button>
+          </div>
+          <div class="panel-head">
+            <p id="limitsSummary" class="muted">Character limit per toot: 500</p>
+            <p class="muted">Use a line containing <code>---</code> to manually split toots.</p>
+          </div>
+
+          <div class="composer-settings">
+            <label for="tootLanguageInput">Language:</label>
+            <select
+              id="tootLanguageInput"
+              aria-label="Toot language"
+            >
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+              <option value="es">Español</option>
+              <option value="de">Deutsch</option>
+              <option value="it">Italiano</option>
+              <option value="pt">Português</option>
+              <option value="nl">Nederlands</option>
+              <option value="ja">日本語</option>
+              <option value="ko">한국어</option>
+              <option value="zh">中文</option>
+            </select>
+            <p class="muted setting-help">
+              Applied to all toots in this thread.
+            </p>
+          </div>
+
+          <label class="textarea-label" for="sourceText">Thread text</label>
+          <textarea
+            id="sourceText"
+            rows="16"
+            placeholder="Write your long thread here..."
+            spellcheck="true"
+          ></textarea>
+
+          <div class="compose-meta">
+            <span id="textCount" class="muted">0 characters</span>
+            <span id="chunkCount" class="muted">0 toots</span>
+            <span id="currentSplitCount" class="muted">Current toot: 0/500</span>
+          </div>
+
+          <div class="publish-controls">
+            <button id="publishButton" type="button">Publish thread</button>
+            <button id="retryButton" type="button" class="secondary hidden">Retry publish</button>
+            <button id="manualNextButton" type="button" class="secondary hidden">Publish next toot</button>
+            <button id="discardRecoveryButton" type="button" class="secondary hidden">Discard recovery</button>
+          </div>
+
+          <p id="publishStatus" class="muted"></p>
+        </section>
+
+        <aside class="side-panels" aria-label="Assist panels">
+          <section class="card">
+            <div class="panel-head inline">
+              <h2>Favorite hashtags</h2>
+              <button id="refreshTagsButton" type="button" class="secondary">Refresh</button>
+            </div>
+            <p id="hashtagsHint" class="muted">Sign in to load followed tags.</p>
+            <div id="hashtagsList" class="hashtags-list"></div>
+          </section>
+
+          <section class="card">
+            <h2>Split preview</h2>
+            <ul id="splitPreview" class="preview-list"></ul>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <section id="focusModePanel" class="focus-mode hidden" aria-label="Focus writing mode">
+      <div class="focus-toolbar">
+        <strong>Focus writing</strong>
+        <span id="focusCurrentSplitCount" class="muted">Current toot: 0/500</span>
+        <button id="focusModeExitButton" type="button" class="secondary">Exit focus mode</button>
+      </div>
+      <div class="focus-content">
+        <textarea
+          id="focusModeText"
+          rows="20"
+          placeholder="Write your thread here... Use --- on its own line to split manually."
+          spellcheck="true"
+        ></textarea>
+        <div class="focus-preview card">
+          <h2>Split preview</h2>
+          <ul id="focusSplitPreview" class="preview-list"></ul>
+        </div>
+      </div>
+    </section>
+
+    <script type="module" src="./js/main.js"></script>
+  </body>
+</html>

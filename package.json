@@ -1,0 +1,10 @@
+{
+  "name": "calm-mastodon-thread-publisher",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Static Mastodon thread publisher app",
+  "scripts": {
+    "start": "(sleep 1 && open http://localhost:8080) & python3 server.py",
+    "start:8080": "(sleep 1 && open http://localhost:8080) & python3 server.py"
+  }
+}

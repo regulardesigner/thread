@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Memory Journal"
+  short_description: "Record prompts, plans, results, and learnings for each task"
+  default_prompt: "Use $project-memory-journal to log the incoming request, save the execution plan, and capture result and learning updates in docs/project-memory."
