@@ -7,7 +7,44 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div id="appShell" class="app-shell">
+    <section id="landingPage" class="landing">
+      <div class="landing-hero">
+        <div class="landing-copy">
+          <h1 class="landing-title">Calm Thread Publisher</h1>
+          <p class="landing-tagline">Write long-form thoughts. Publish as a Mastodon thread.</p>
+          <ul class="landing-features">
+            <li>Splits your text into toots that fit your instance's character limit</li>
+            <li>Publishes each toot as a threaded reply, keeping your thread intact</li>
+            <li>Checkpoint recovery — resume publishing if anything goes wrong mid-thread</li>
+            <li>Hashtag suggestions pulled from the tags you already follow</li>
+          </ul>
+        </div>
+        <div class="card landing-signin-card">
+          <h2>Get started</h2>
+          <p class="muted">Enter your Mastodon instance to sign in.</p>
+          <form id="landingSignInForm" class="auth-form">
+            <label for="landingInstanceInput">Mastodon instance</label>
+            <div class="auth-controls">
+              <div class="instance-input-wrap">
+                <input
+                  id="landingInstanceInput"
+                  name="instance"
+                  type="text"
+                  placeholder="Type your Instance URL"
+                  autocomplete="off"
+                  required
+                />
+                <ul id="landingInstanceDropdown" class="instance-dropdown hidden" role="listbox" aria-label="Instance suggestions"></ul>
+              </div>
+              <button id="landingSignInButton" type="submit">Sign in</button>
+            </div>
+          </form>
+          <p id="landingAuthStatus" class="muted landing-auth-status"></p>
+        </div>
+      </div>
+    </section>
+
+    <div id="appShell" class="app-shell hidden">
       <header class="app-header card">
         <div>
           <h1>Calm Thread Publisher</h1>
@@ -20,14 +57,17 @@
           <form id="signInForm" class="auth-form">
             <label for="instanceInput">Mastodon instance</label>
             <div class="auth-controls">
-              <input
-                id="instanceInput"
-                name="instance"
-                type="text"
-                placeholder="mastodon.social"
-                autocomplete="url"
-                required
-              />
+              <div class="instance-input-wrap">
+                <input
+                  id="instanceInput"
+                  name="instance"
+                  type="text"
+                  placeholder="Type your Instance URL"
+                  autocomplete="off"
+                  required
+                />
+                <ul id="instanceDropdown" class="instance-dropdown hidden" role="listbox" aria-label="Instance suggestions"></ul>
+              </div>
               <button id="signInButton" type="submit">Sign in</button>
             </div>
           </form>

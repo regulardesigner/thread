@@ -18,23 +18,33 @@ import {
   verifySession,
 } from "./modules/auth.js";
 import { fetchInstanceLimits } from "./modules/api.js";
+import { filterInstances, loadInstances } from "./modules/instances.js";
 import { analyzeText } from "./modules/splitter.js";
 import { fetchFavoriteHashtags, insertHashtagAtCursor } from "./modules/hashtags.js";
 import { publishNextPending, publishThread, resumeThread } from "./modules/publisher.js";
 import {
   renderAuthState,
   renderHashtags,
+  renderInstanceDropdown,
+  renderLandingPage,
   renderPublishButtons,
   renderSplitPreview,
   setBanner,
 } from "./modules/ui.js";
 
 const dom = {
+  landingPage: document.getElementById("landingPage"),
+  landingInstanceInput: document.getElementById("landingInstanceInput"),
+  landingInstanceDropdown: document.getElementById("landingInstanceDropdown"),
+  landingSignInForm: document.getElementById("landingSignInForm"),
+  landingSignInButton: document.getElementById("landingSignInButton"),
+  landingAuthStatus: document.getElementById("landingAuthStatus"),
   appShell: document.getElementById("appShell"),
   signedOutAuthPanel: document.getElementById("signedOutAuthPanel"),
   signedInAuthPanel: document.getElementById("signedInAuthPanel"),
   signInForm: document.getElementById("signInForm"),
   instanceInput: document.getElementById("instanceInput"),
+  instanceDropdown: document.getElementById("instanceDropdown"),
   signInButton: document.getElementById("signInButton"),
   signOutButton: document.getElementById("signOutButton"),
   authStatus: document.getElementById("authStatus"),
@@ -222,6 +232,7 @@ function closeFocusMode() {
 }
 
 function render() {
+  renderLandingPage(dom, { isVisible: !state.authSession });
   renderAuthState(dom, state.authSession, state.account);
 
   dom.limitsSummary.textContent = `Character limit per toot: ${state.charLimit}`;
@@ -354,17 +365,99 @@ async function withPublishingState(task) {
   }
 }
 
+let instanceList = [];
+
+function bindInstanceAutocomplete(inputEl, dropdownEl) {
+  let highlightIndex = -1;
+
+  function getItems() {
+    return Array.from(dropdownEl.querySelectorAll("li"));
+  }
+
+  function setHighlight(index) {
+    const items = getItems();
+    items.forEach((li, i) => li.setAttribute("aria-selected", String(i === index)));
+    highlightIndex = index;
+  }
+
+  function selectItem(domain) {
+    inputEl.value = domain;
+    renderInstanceDropdown(dropdownEl, [], () => {});
+    highlightIndex = -1;
+  }
+
+  let listLoaded = false;
+  inputEl.addEventListener("focus", async () => {
+    if (!listLoaded) {
+      listLoaded = true;
+      instanceList = await loadInstances();
+    }
+    const matches = filterInstances(instanceList, inputEl.value);
+    renderInstanceDropdown(dropdownEl, matches, selectItem);
+    highlightIndex = -1;
+  }, { once: false });
+
+  inputEl.addEventListener("input", () => {
+    const matches = filterInstances(instanceList, inputEl.value);
+    renderInstanceDropdown(dropdownEl, matches, selectItem);
+    highlightIndex = -1;
+  });
+
+  inputEl.addEventListener("keydown", (e) => {
+    const items = getItems();
+    if (!items.length) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlight(Math.min(highlightIndex + 1, items.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlight(Math.max(highlightIndex - 1, 0));
+    } else if (e.key === "Enter" && highlightIndex >= 0) {
+      e.preventDefault();
+      selectItem(items[highlightIndex].textContent);
+    } else if (e.key === "Escape") {
+      renderInstanceDropdown(dropdownEl, [], () => {});
+      highlightIndex = -1;
+    }
+  });
+
+  inputEl.addEventListener("blur", () => {
+    setTimeout(() => {
+      renderInstanceDropdown(dropdownEl, [], () => {});
+      highlightIndex = -1;
+    }, 150);
+  });
+}
+
+async function handleSignIn(rawValue, statusEl) {
+  const trimmed = rawValue.trim();
+  if (!trimmed) {
+    if (statusEl) statusEl.textContent = "Please enter your Mastodon instance (e.g. mastodon.social).";
+    return;
+  }
+  if (statusEl) statusEl.textContent = "";
+  try {
+    const instanceDomain = normalizeInstanceDomain(trimmed);
+    setMessage("info", `Redirecting to ${instanceDomain} for sign-in...`);
+    await signIn(instanceDomain);
+  } catch (error) {
+    setMessage("error", error.message);
+  }
+}
+
 function bindEvents() {
+  bindInstanceAutocomplete(dom.instanceInput, dom.instanceDropdown);
+  bindInstanceAutocomplete(dom.landingInstanceInput, dom.landingInstanceDropdown);
+
   dom.signInForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    await handleSignIn(dom.instanceInput.value, null);
+  });
 
-    try {
-      const instanceDomain = normalizeInstanceDomain(dom.instanceInput.value);
-      setMessage("info", `Redirecting to ${instanceDomain} for sign-in...`);
-      await signIn(instanceDomain);
-    } catch (error) {
-      setMessage("error", error.message);
-    }
+  dom.landingSignInForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await handleSignIn(dom.landingInstanceInput.value, dom.landingAuthStatus);
   });
 
   dom.signOutButton.addEventListener("click", () => {
@@ -532,7 +625,9 @@ function bindEvents() {
 }
 
 async function init() {
-  dom.instanceInput.value = loadLastInstance();
+  const lastInstance = loadLastInstance();
+  dom.instanceInput.value = lastInstance;
+  dom.landingInstanceInput.value = lastInstance;
   state.preferredLanguage = normalizeLanguageCode(loadPreferredLanguage(), DEFAULT_LANGUAGE_CODE);
   dom.tootLanguageInput.value = state.preferredLanguage;
   savePreferredLanguage(state.preferredLanguage);

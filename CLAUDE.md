@@ -2,6 +2,17 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Tech Stack
+
+- **Runtime:** Browser — no Node.js runtime, no bundler, no build step
+- **Language:** Vanilla JavaScript (ES6 modules, `type="module"`)
+- **Styling:** Plain CSS with custom properties
+- **Testing:** Vitest (unit tests only, run via `npm test`)
+- **Server:** `python3 server.py` — local dev only, serves static files on port 8080
+- **Auth:** OAuth 2.0 PKCE (no backend — client-side only)
+- **API:** Mastodon REST API (instance-agnostic)
+- **Storage:** `localStorage` + `sessionStorage` (no database)
+
 ## Development
 
 ```bash

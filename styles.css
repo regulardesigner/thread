@@ -1,40 +1,40 @@
 :root {
   color-scheme: light dark;
-  --bg: #f4f6f6;
+  --bg: #eef2fa;
   --surface: #ffffff;
-  --surface-soft: #f7f9f9;
-  --border: #d8dfdf;
-  --text: #1d2a2a;
-  --text-soft: #587070;
-  --accent: #2f6f6a;
-  --accent-strong: #245854;
-  --danger-bg: #fff1f1;
-  --danger-text: #8f2a2a;
-  --warn-bg: #fff8eb;
-  --warn-text: #7d5a17;
-  --ok-bg: #effaf3;
-  --ok-text: #1f6a3f;
-  --shadow: 0 8px 24px rgba(29, 42, 42, 0.06);
+  --surface-soft: #f4f7fd;
+  --border: #c4d4ee;
+  --text: #1a1828;
+  --text-soft: #586488;
+  --accent: #2277dd;
+  --accent-strong: #1a5eb8;
+  --danger-bg: #fdf0f2;
+  --danger-text: #992040;
+  --warn-bg: #faf0f5;
+  --warn-text: #884060;
+  --ok-bg: #eef8f6;
+  --ok-text: #1d7a6e;
+  --shadow: 0 8px 24px rgba(34, 119, 221, 0.09);
   --radius: 14px;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #111716;
-    --surface: #17201f;
-    --surface-soft: #1b2625;
-    --border: #2f3f3d;
-    --text: #e2eceb;
-    --text-soft: #9db2b0;
-    --accent: #74b9b1;
-    --accent-strong: #8ecac3;
-    --danger-bg: #402727;
-    --danger-text: #f6b0b0;
-    --warn-bg: #42371f;
-    --warn-text: #f5d28c;
-    --ok-bg: #1e392b;
-    --ok-text: #aae1bf;
-    --shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+    --bg: #221a1c;
+    --surface: #2d2124;
+    --surface-soft: #37292e;
+    --border: #503840;
+    --text: #e2ccd8;
+    --text-soft: #9878a0;
+    --accent: #4499ee;
+    --accent-strong: #66aaf4;
+    --danger-bg: #3c1e26;
+    --danger-text: #f0a0b8;
+    --warn-bg: #3a1e30;
+    --warn-text: #ddb0cc;
+    --ok-bg: #182e2a;
+    --ok-text: #44ccb8;
+    --shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
   }
 }
 
@@ -425,5 +425,121 @@ textarea {
   * {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+.instance-input-wrap {
+  position: relative;
+}
+
+.instance-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  z-index: 100;
+  list-style: none;
+  padding: 0.3rem 0;
+  margin: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.instance-dropdown li {
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.instance-dropdown li:hover,
+.instance-dropdown li[aria-selected="true"] {
+  background: color-mix(in oklab, var(--surface), var(--accent) 14%);
+}
+
+.landing {
+  max-width: 1100px;
+  margin: 4rem auto;
+  padding: 0 1.5rem 3rem;
+}
+
+.landing-hero {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 3.5rem;
+  align-items: start;
+}
+
+.landing-title {
+  margin: 0 0 0.6rem;
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.landing-tagline {
+  margin: 0 0 2rem;
+  font-size: 1.15rem;
+  color: var(--text-soft);
+  line-height: 1.55;
+}
+
+.landing-features {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.landing-features li {
+  padding-left: 1.6rem;
+  position: relative;
+  line-height: 1.55;
+}
+
+.landing-features li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.landing-signin-card {
+  position: sticky;
+  top: 2rem;
+}
+
+.landing-signin-card h2 {
+  margin: 0 0 0.3rem;
+  font-size: 1.1rem;
+}
+
+.landing-signin-card .auth-form {
+  margin-top: 0.9rem;
+}
+
+.landing-auth-status {
+  margin: 0.5rem 0 0;
+  min-height: 1.2em;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 960px) {
+  .landing {
+    margin: 2rem auto;
+  }
+
+  .landing-hero {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .landing-signin-card {
+    position: static;
   }
 }

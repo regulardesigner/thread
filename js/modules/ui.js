@@ -121,6 +121,27 @@ export function renderSplitPreview(container, chunks, charLimit, activeIndex = -
   activeEl?.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
 
+export function renderInstanceDropdown(dropdownEl, matches, onSelect) {
+  dropdownEl.innerHTML = "";
+  setHidden(dropdownEl, matches.length === 0);
+
+  matches.forEach((domain) => {
+    const li = document.createElement("li");
+    li.role = "option";
+    li.textContent = domain;
+    li.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      onSelect(domain);
+    });
+    dropdownEl.append(li);
+  });
+}
+
+export function renderLandingPage(elements, { isVisible }) {
+  setHidden(elements.landingPage, !isVisible);
+  setHidden(elements.appShell, isVisible);
+}
+
 export function renderPublishButtons(elements, context) {
   const activeRecovery =
     context.checkpoint && context.checkpoint.nextIndex < context.checkpoint.chunks.length;
