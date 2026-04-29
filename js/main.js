@@ -17,13 +17,14 @@ import {
   signOut,
   verifySession,
 } from "./modules/auth.js";
-import { fetchInstanceLimits } from "./modules/api.js";
+import { fetchInstanceLimits, getStatus } from "./modules/api.js";
 import { filterInstances, loadInstances } from "./modules/instances.js";
 import { analyzeText } from "./modules/splitter.js";
 import { fetchFavoriteHashtags, insertHashtagAtCursor } from "./modules/hashtags.js";
 import { publishNextPending, publishThread, resumeThread } from "./modules/publisher.js";
 import {
   renderAuthState,
+  renderContinuationSection,
   renderHashtags,
   renderInstanceDropdown,
   renderLandingPage,
@@ -31,6 +32,9 @@ import {
   renderSplitPreview,
   setBanner,
 } from "./modules/ui.js";
+import { isSameInstance, parseTootUrl } from "./modules/continuation.js";
+
+let continuationRequestGen = 0;
 
 const dom = {
   landingPage: document.getElementById("landingPage"),
@@ -77,6 +81,10 @@ const dom = {
   hashtagsList: document.getElementById("hashtagsList"),
   splitPreview: document.getElementById("splitPreview"),
   focusSplitPreview: document.getElementById("focusSplitPreview"),
+  continuationUrlInput: document.getElementById("continuationUrlInput"),
+  continuationClearButton: document.getElementById("continuationClearButton"),
+  continuationStatus: document.getElementById("continuationStatus"),
+  continuationPreview: document.getElementById("continuationPreview"),
 };
 
 const state = {
@@ -94,6 +102,7 @@ const state = {
   lastProgress: null,
   focusMode: false,
   preferredLanguage: "",
+  continuationToot: null,
 };
 
 const SUPPORTED_LANGUAGE_CODES = new Set(["en", "fr", "es", "de", "it", "pt", "nl", "ja", "ko", "zh"]);
@@ -264,6 +273,18 @@ function render() {
   dom.tootLanguageInput.disabled = state.publishBusy;
 
   renderPublishStatus();
+
+  renderContinuationSection(dom, {
+    continuationToot: state.continuationToot,
+    isBusy: state.publishBusy,
+  });
+}
+
+function clearContinuationState() {
+  continuationRequestGen += 1;
+  state.continuationToot = null;
+  dom.continuationUrlInput.value = "";
+  dom.continuationStatus.textContent = "";
 }
 
 function updateProgress(progress) {
@@ -467,6 +488,7 @@ function bindEvents() {
     state.favoriteTags = [];
     state.charLimit = DEFAULT_CHAR_LIMIT;
     clearRecoveryState();
+    clearContinuationState();
     refreshSplitState(0);
     setMessage("info", "Signed out.");
     render();
@@ -522,6 +544,88 @@ function bindEvents() {
     savePreferredLanguage(normalized);
   });
 
+  dom.continuationUrlInput.addEventListener("input", async () => {
+    const myGen = ++continuationRequestGen;
+    try {
+      const rawValue = dom.continuationUrlInput.value.trim();
+
+      if (!rawValue) {
+        state.continuationToot = null;
+        dom.continuationStatus.textContent = "";
+        render();
+        return;
+      }
+
+      const parsed = parseTootUrl(rawValue);
+      if (!parsed) {
+        state.continuationToot = null;
+        dom.continuationStatus.textContent = "Not a valid toot URL.";
+        render();
+        return;
+      }
+
+      if (!state.authSession || !state.account) {
+        state.continuationToot = null;
+        dom.continuationStatus.textContent = "Sign in to verify the toot.";
+        render();
+        return;
+      }
+
+      if (!isSameInstance(parsed, state.authSession.instanceDomain)) {
+        state.continuationToot = null;
+        dom.continuationStatus.textContent =
+          `That toot is from ${parsed.instanceDomain}, but you are signed in to ${state.authSession.instanceDomain}.`;
+        render();
+        return;
+      }
+
+      dom.continuationStatus.textContent = "Verifying…";
+      render();
+
+      let status;
+      try {
+        status = await getStatus(
+          state.authSession.instanceDomain,
+          state.authSession.accessToken,
+          parsed.statusId
+        );
+      } catch (error) {
+        if (myGen !== continuationRequestGen) return;
+        state.continuationToot = null;
+        dom.continuationStatus.textContent = `Could not load toot: ${error.message}`;
+        render();
+        return;
+      }
+
+      if (myGen !== continuationRequestGen) return;
+
+      if (status?.account?.id !== state.account.id) {
+        state.continuationToot = null;
+        dom.continuationStatus.textContent = "This toot doesn't belong to your account.";
+        render();
+        return;
+      }
+
+      state.continuationToot = {
+        statusId: parsed.statusId,
+        instanceDomain: parsed.instanceDomain,
+        text: status.content || "",
+      };
+      dom.continuationStatus.textContent = "Verified — new toots will continue this thread.";
+      render();
+    } catch (error) {
+      if (myGen !== continuationRequestGen) return;
+      state.continuationToot = null;
+      dom.continuationStatus.textContent = `Error: ${error.message}`;
+      render();
+    }
+  });
+
+  dom.continuationClearButton.addEventListener("click", () => {
+    clearContinuationState();
+    render();
+  });
+
   dom.publishButton.addEventListener("click", () =>
     withPublishingState(async () => {
       if (!state.authSession) {
@@ -544,10 +648,12 @@ function bindEvents() {
         onProgress: updateProgress,
       }, {
         language: state.preferredLanguage,
+        continuationStatusId: state.continuationToot?.statusId || null,
       });
 
       if (result.status === "completed") {
         clearRecoveryState();
+        clearContinuationState();
         setMessage("success", `Thread published (${state.chunks.length} toots).`);
         return;
       }
@@ -569,6 +675,7 @@ function bindEvents() {
 
       if (result.status === "completed") {
         clearRecoveryState();
+        clearContinuationState();
         setMessage("success", "Thread published successfully after retry.");
         return;
       }
@@ -595,6 +702,7 @@ function bindEvents() {
 
       if (result.status === "completed") {
         clearRecoveryState();
+        clearContinuationState();
         setMessage("success", "All remaining toots were published.");
         return;
       }

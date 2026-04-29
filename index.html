@@ -132,6 +132,21 @@
             </p>
           </div>
 
+          <div class="composer-settings continuation-settings">
+            <label for="continuationUrlInput">Continue from toot <span class="muted">(optional)</span></label>
+            <div class="continuation-input-row">
+              <input
+                id="continuationUrlInput"
+                type="url"
+                placeholder="https://mastodon.social/@you/123456789012345678"
+                autocomplete="off"
+              />
+              <button id="continuationClearButton" type="button" class="secondary hidden">Clear</button>
+            </div>
+            <p id="continuationStatus" class="muted continuation-status" aria-live="polite"></p>
+            <div id="continuationPreview" class="continuation-preview hidden"></div>
+          </div>
+
           <label class="textarea-label" for="sourceText">Thread text</label>
           <textarea
             id="sourceText"

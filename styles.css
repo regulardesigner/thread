@@ -430,6 +430,35 @@ textarea {
   }
 }
 
+.continuation-input-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.continuation-status {
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
+  min-height: 1.2em;
+}
+
+.continuation-preview {
+  margin-top: 0.5rem;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  border-radius: 12px;
+  padding: 0.6rem 0.7rem;
+}
+
+.continuation-preview-toot {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  font-size: 0.95rem;
+}
+
 .instance-input-wrap {
   position: relative;
 }

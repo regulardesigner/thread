@@ -191,3 +191,9 @@ export async function createStatus(instanceDomain, accessToken, payload) {
     },
   });
 }
+
+export async function getStatus(instanceDomain, accessToken, statusId) {
+  return request(instanceDomain, `/api/v1/statuses/${encodeURIComponent(statusId)}`, {
+    token: accessToken,
+  });
+}

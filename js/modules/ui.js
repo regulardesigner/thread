@@ -142,6 +142,41 @@ export function renderLandingPage(elements, { isVisible }) {
   setHidden(elements.appShell, isVisible);
 }
 
+function htmlToPlainText(html) {
+  if (!html) return "";
+  const withBreaks = html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>\s*<p[^>]*>/gi, "\n\n")
+    .replace(/<\/?p[^>]*>/gi, "");
+  const doc = new DOMParser().parseFromString(withBreaks, "text/html");
+  return (doc.body.textContent || "").trim();
+}
+
+export function renderContinuationSection(elements, { continuationToot, isBusy }) {
+  const hasInput = Boolean(elements.continuationUrlInput?.value?.trim());
+
+  elements.continuationUrlInput.disabled = isBusy;
+  elements.continuationClearButton.disabled = isBusy;
+  setHidden(elements.continuationClearButton, !hasInput);
+
+  if (!continuationToot) {
+    setHidden(elements.continuationPreview, true);
+    elements.continuationPreview.innerHTML = "";
+    return;
+  }
+
+  setHidden(elements.continuationPreview, false);
+  elements.continuationPreview.innerHTML = "";
+
+  const text = htmlToPlainText(continuationToot.text);
+  const truncated = text.length > 300 ? text.slice(0, 300).trimEnd() + "…" : text;
+
+  const p = document.createElement("p");
+  p.className = "continuation-preview-toot";
+  p.textContent = truncated;
+  elements.continuationPreview.append(p);
+}
+
 export function renderPublishButtons(elements, context) {
   const activeRecovery =
     context.checkpoint && context.checkpoint.nextIndex < context.checkpoint.chunks.length;

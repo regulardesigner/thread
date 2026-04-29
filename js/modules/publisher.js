@@ -42,17 +42,24 @@ async function publishCurrentIndex(authSession, checkpoint) {
     return null;
   }
 
-  if (index > 0 && !checkpoint.rootStatusId) {
+  const isContinuation = Boolean(checkpoint.continuationStatusId);
+
+  if (!isContinuation && index > 0 && !checkpoint.rootStatusId) {
     checkpoint.rootStatusId = checkpoint.publishedStatusIds[0] || null;
     if (!checkpoint.rootStatusId) {
       throw new Error("Missing root toot id for reply publication.");
     }
   }
 
+  const inReplyToId = isContinuation
+    ? checkpoint.continuationStatusId
+    : (index === 0 ? null : checkpoint.rootStatusId);
+  const visibility = (index === 0 && !isContinuation) ? "public" : "unlisted";
+
   const response = await createStatus(authSession.instanceDomain, authSession.accessToken, {
     status: checkpoint.chunks[index],
-    visibility: index === 0 ? "public" : "unlisted",
-    inReplyToId: index === 0 ? null : checkpoint.rootStatusId,
+    visibility,
+    inReplyToId,
     language: checkpoint.language || undefined,
   });
 
@@ -106,13 +113,14 @@ async function publishRemaining(authSession, checkpoint, options = {}) {
   };
 }
 
-export function createPublishCheckpoint(instanceDomain, chunks, language = "") {
+export function createPublishCheckpoint(instanceDomain, chunks, language = "", continuationStatusId = null) {
   return {
     version: 1,
     instanceDomain,
     chunks: [...chunks],
     language,
     rootStatusId: null,
+    continuationStatusId: continuationStatusId || null,
     publishedStatusIds: [],
     nextIndex: 0,
     failedIndex: null,
@@ -136,7 +144,8 @@ export async function publishThread(authSession, chunks, callbacks = {}, options
   const checkpoint = createPublishCheckpoint(
     authSession.instanceDomain,
     chunks,
-    options.language || ""
+    options.language || "",
+    options.continuationStatusId || null
   );
   const normalized = normalizeCallbacks(callbacks);
   normalized.onCheckpoint(checkpoint);
